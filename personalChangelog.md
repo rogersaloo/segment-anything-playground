@@ -1,1 +1,0 @@
-# Identify the log changes in the SAM model
