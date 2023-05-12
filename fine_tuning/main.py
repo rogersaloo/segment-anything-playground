@@ -1,22 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import torch
 from pathlib import Path
-from variables import Da
+from statistics import mean
+from collections import defaultdict
+from torch.nn.functional import threshold, normalize
+from segment_anything.utils.transforms import ResizeLongestSide
+from segment_anything import SamPredictor, sam_model_registry
+from variables import DataPath, GroundTruth
+from fine_tuning.config import model_type, checkpoint, device, lr, wd, num_epochs
+
+
+
 
 #set path variables to the masks, train and test data
-ground_truth_masks = "bottle/ground_truth/broken_large/"
-train_bottles = 'bottle/train/good/'
-test_bottles = 'bottle/test/broken_large/'
+ground_truth_masks = DataPath.ground_truth_masks
+train_bottles = DataPath.train_bottles
+test_bottles = DataPath.test_bottles
 
 # ground truth
-name = '005'
-image = cv2.imread(f'{test_bottles}/{name}.png')
-
-## fine_tuning
-model_type = 'vit_b'
-checkpoint = 'sam_vit_b_01ec64.pth'
-device = 'cuda:0'
+ground_truth_image = GroundTruth.ground_truth_image
 
 def bbox_coords() -> dict:
     """Returns dict array of bounding boxes for the """
@@ -67,74 +71,49 @@ def plot_ground_truth():
     The bounding box overlays very well on the broken part.
     The bounding box overlaid will be a good prompt.
     """
+    image = cv2.imread(f'{test_bottles}/{ground_truth_image}.png')
     plt.figure(figsize=(10,10))
     plt.imshow(image)
-    show_box(bbox_coords[name], plt.gca())
+    show_box(bbox_coords[ground_truth_image], plt.gca())
     plt.axis('off')
     plt.show()
 
-"""## Prepare Fine Tuning"""
-
-
 
 #loading checkpoint of the SAM weights
-from segment_anything import SamPredictor, sam_model_registry
 sam_model = sam_model_registry[model_type](checkpoint=checkpoint)
 sam_model.to(device)
-sam_model.train();
+sam_model.train()
 
-"""### Image resizing
-We convert the input images into a format SAM's internal functions expect.
-"""
 
-# Preprocess the images
-from collections import defaultdict
+def preprocess_image() -> None:
+    """Returns pre-processed images
+    Image resizing by convert the input images into a format SAM's internal functions expect"""
+    transformed_data = defaultdict(dict)
+    for k in bbox_coords.keys():
+      image = cv2.imread(f'{train_bottles}/{k}.png')
+      image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+      transform = ResizeLongestSide(sam_model.image_encoder.img_size)
+      input_image = transform.apply_image(image)
+      input_image_torch = torch.as_tensor(input_image, device=device)
+      transformed_image = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
 
-import torch
+      input_image = sam_model.preprocess(transformed_image)
+      original_image_size = image.shape[:2]
+      input_size = tuple(transformed_image.shape[-2:])
 
-from segment_anything.utils.transforms import ResizeLongestSide
+      transformed_data[k]['image'] = input_image
+      transformed_data[k]['input_size'] = input_size
+      transformed_data[k]['original_image_size'] = original_image_size
 
-transformed_data = defaultdict(dict)
-for k in bbox_coords.keys():
-  image = cv2.imread(f'{train_bottles}/{k}.png')
-  image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
-  transform = ResizeLongestSide(sam_model.image_encoder.img_size)
-  input_image = transform.apply_image(image)
-  input_image_torch = torch.as_tensor(input_image, device=device)
-  transformed_image = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
-  
-  input_image = sam_model.preprocess(transformed_image)
-  original_image_size = image.shape[:2]
-  input_size = tuple(transformed_image.shape[-2:])
-
-  transformed_data[k]['image'] = input_image
-  transformed_data[k]['input_size'] = input_size
-  transformed_data[k]['original_image_size'] = original_image_size
-
-"""### Hyperparameters"""
 
 # Set up the optimizer, learning rate and weight decay
-lr = 1e-6
-wd = 0
 optimizer = torch.optim.Adam(sam_model.mask_decoder.parameters(), lr=lr, weight_decay=wd)
-
 loss_fn = torch.nn.MSELoss()
 keys = list(bbox_coords.keys())
 
-"""## Run fine tuning
 
-### Trainig loop
-This is the main training loop. 
 
-Improvements to be made include batching and moving the computation of the image and prompt embeddings outside the loop since we are not tuning these parts of the model, this will speed up training as we should not recompute the embeddings during each epoch.
-"""
-
-from statistics import mean
-
-from tqdm import tqdm
-from torch.nn.functional import threshold, normalize
-
-num_epochs = 70
+# Training loop
 losses = []
 
 for epoch in range(num_epochs):
@@ -207,7 +186,6 @@ sam_model_orig = sam_model_registry[model_type](checkpoint=checkpoint)
 sam_model_orig.to(device);
 
 # Set up predictors for both tuned and original models
-from segment_anything import sam_model_registry, SamPredictor
 predictor_tuned = SamPredictor(sam_model)
 predictor_original = SamPredictor(sam_model_orig)
 
@@ -237,22 +215,22 @@ masks_orig, _, _ = predictor_original.predict(
 
 """
 
-# Commented out IPython magic to ensure Python compatibility.
-# %matplotlib inline 
-_, axs = plt.subplots(1, 2, figsize=(25, 25))
+def plot_sam_vs_tuned():
+    """Returns an image """
+    _, axs = plt.subplots(1, 2, figsize=(25, 25))
 
 
-axs[0].imshow(image)
-show_mask(masks_tuned, axs[0])
-show_box(input_bbox, axs[0])
-axs[0].set_title('Mask with Tuned Model', fontsize=26)
-axs[0].axis('off')
+    axs[0].imshow(image)
+    show_mask(masks_tuned, axs[0])
+    show_box(input_bbox, axs[0])
+    axs[0].set_title('Mask with Tuned Model', fontsize=26)
+    axs[0].axis('off')
 
 
-axs[1].imshow(image)
-show_mask(masks_orig, axs[1])
-show_box(input_bbox, axs[1])
-axs[1].set_title('Mask with Untuned Model', fontsize=26)
-axs[1].axis('off')
+    axs[1].imshow(image)
+    show_mask(masks_orig, axs[1])
+    show_box(input_bbox, axs[1])
+    axs[1].set_title('Mask with Untuned Model', fontsize=26)
+    axs[1].axis('off')
 
-plt.show()
+    plt.show()
