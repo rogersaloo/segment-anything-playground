@@ -7,7 +7,7 @@
 import numpy as np
 import torch
 
-from segment_anything.modeling import Sam
+from official_sam_repo.segment_anything.modeling import Sam
 
 from typing import Optional, Tuple
 

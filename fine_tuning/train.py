@@ -1,5 +1,5 @@
 import torch
-from segment_anything import sam_model_registry
+from official_sam_repo.segment_anything import sam_model_registry
 from torch.nn.functional import threshold, normalize
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
