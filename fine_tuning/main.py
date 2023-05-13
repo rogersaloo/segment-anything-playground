@@ -13,7 +13,6 @@ from fine_tuning.config import model_type, checkpoint, device, lr, wd, num_epoch
 
 
 
-
 #set path variables to the masks, train and test data
 ground_truth_masks = DataPath.ground_truth_masks
 train_bottles = DataPath.train_bottles

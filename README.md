@@ -43,7 +43,7 @@ SAM model realease occured without any explicit fine-tuning functionality. In th
 
 #### Tasks
 
-1.Wrap image encoder with no gradient flow
+1. Wrap image encoder with no gradient flow
 2. Generate prompt embeds with no grad flow
 3. Generate the masks -(use case output mask 1)
 
@@ -51,18 +51,20 @@ SAM model realease occured without any explicit fine-tuning functionality. In th
 
 1. Learning rate to 1e-06 
 2. Change image decoder loss type to MSE
-3. Using the Adma optimizer on the image decoder
+3. Using the Adam optimizer on the image decoder
 
 ## Result
 The masking results from the new model are not perfect, but showcase an improvement from the base SAM model on this task.
 ![fine_tune_mask.png](assets%2Ffine_tune_mask.png)
 
-Check out the [colab notebook](https://colab.research.google.com/drive/144kBr52E_X3hElaJw65aDgKtueKtXOCx#scrollTo=aiehQvBj5Crc)
+<a target="_blank" href="https://colab.research.google.com/drive/144kBr52E_X3hElaJw65aDgKtueKtXOCx">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
 ### Resources 
 1. Original SAM paper
 2. segment-anything github repo
-3. Some code implementation from encords open-source framework by Alex Bonnet for computer vision here https://github.com/encord-team/encord-active).
+3. Some code implementation from encords open-source framework for computer vision [here](https://github.com/encord-team) by [Alex Bonnet](https://encord.com/blog/learn-how-to-fine-tune-the-segment-anything-model-sam/) .
 4. MTVEC AD Data set
 Paul Bergmann, Michael Fauser, David Sattlegger, and Carsten Steger,
 "A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection",
