@@ -10,72 +10,55 @@ from segment_anything.utils.transforms import ResizeLongestSide
 from segment_anything import SamPredictor, sam_model_registry
 from variables import DataPath, GroundTruth
 from fine_tuning.config import model_type, checkpoint, device, lr, wd, num_epochs
-
+import sys
 
 
 #set path variables to the masks, train and test data
 ground_truth_masks = DataPath.ground_truth_masks
 train_bottles = DataPath.train_bottles
 test_bottles = DataPath.test_bottles
-
-# ground truth
 ground_truth_image = GroundTruth.ground_truth_image
 
 def bbox_coords() -> dict:
-    """Returns dict array of bounding boxes for the """
-    bbox_coords = {}
-    for f in sorted(Path(f'{ground_truth_masks}').iterdir())[:100]:
-      k = f.stem[:-5] #stem the images name
-      im = cv2.imread(f.as_posix())
-      gray=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-      contours, hierarchy = cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
-      x,y,w,h = cv2.boundingRect(contours[0])
-      height, width, _ = im.shape
-      bbox_coords[k] = np.array([x, y, x + w, y + h])
-    return bbox_coords
+  """
+  Returns:
+      dict: cordinates of bounding boxes of the passed image
+  """
+  bbox_coords = {}
+  for f in sorted(Path(f'{ground_truth_masks}').iterdir())[:100]:
+    k = f.stem[:-5] #stem the images name
+    im = cv2.imread(f.as_posix())
+    gray=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+    contours, hierarchy = cv2.findContours(gray,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    x,y,w,h = cv2.boundingRect(contours[0])
+    height, width, _ = im.shape
+    bbox_coords[k] = np.array([x, y, x + w, y + h])
+  return bbox_coords
+
+boxes = bbox_coords()
+print(boxes)
+sys.exit
+
 
 def ground_truth_masks() -> dict:
-    """Returns dict extract ofthe ground truth segmentation masks
-    Take a look at the images, the bounding box prompts and the ground truth segmentation masks"""
-    ground_truth_masks = {}
-    for k in bbox_coords.keys():
-      gt_grayscale = cv2.imread(f'{train_bottles}/{k}-mask.png', cv2.IMREAD_GRAYSCALE)
-      ground_truth_masks[k] = (gt_grayscale == 0)
-    return ground_truth_masks
+  """Take a look at the images, the bounding box prompts and the ground truth segmentation masks
+
+  Returns:
+      dict: dict extract ofthe ground truth segmentation masks
+  """
+  ground_truth_masks = {}
+  for k in bbox_coords.keys():
+    gt_grayscale = cv2.imread(f'{train_bottles}/{k}-mask.png', cv2.IMREAD_GRAYSCALE)
+    ground_truth_masks[k] = (gt_grayscale == 0)
+  return ground_truth_masks
 
 
 
-# Helper functions provided in https://github.com/facebookresearch/segment-anything/blob/9e8f1309c94f1128a6e5c047a10fdcb02fc8d651/notebooks/predictor_example.ipynb
-def show_mask(mask, ax, random_color=False):
-    """Helper function for mask image"""
-    if random_color:
-        color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
-    else:
-        color = np.array([30/255, 144/255, 255/255, 0.6])
-    h, w = mask.shape[-2:]
-    mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
-    ax.imshow(mask_image)
-    
-def show_box(box, ax):
-    """Helper function for bounding box image"""
-    x0, y0 = box[0], box[1]
-    w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='red', facecolor=(0,0,0,0), lw=2))
 
 
 
-def plot_ground_truth():
-    """ Returns bounding box images
-    You can see here that the ground truth mask is extremely tight which will be good for calculating an accurate loss.
-    The bounding box overlays very well on the broken part.
-    The bounding box overlaid will be a good prompt.
-    """
-    image = cv2.imread(f'{test_bottles}/{ground_truth_image}.png')
-    plt.figure(figsize=(10,10))
-    plt.imshow(image)
-    show_box(bbox_coords[ground_truth_image], plt.gca())
-    plt.axis('off')
-    plt.show()
+
+
 
 
 #loading checkpoint of the SAM weights
@@ -215,21 +198,22 @@ masks_orig, _, _ = predictor_original.predict(
 """
 
 def plot_sam_vs_tuned():
-    """Returns an image """
-    _, axs = plt.subplots(1, 2, figsize=(25, 25))
+  """Returns image of tuned model vs original SAM model
+  """
+  _, axs = plt.subplots(1, 2, figsize=(25, 25))
 
 
-    axs[0].imshow(image)
-    show_mask(masks_tuned, axs[0])
-    show_box(input_bbox, axs[0])
-    axs[0].set_title('Mask with Tuned Model', fontsize=26)
-    axs[0].axis('off')
+  axs[0].imshow(image)
+  show_mask(masks_tuned, axs[0])
+  show_box(input_bbox, axs[0])
+  axs[0].set_title('Mask with Tuned Model', fontsize=26)
+  axs[0].axis('off')
 
 
-    axs[1].imshow(image)
-    show_mask(masks_orig, axs[1])
-    show_box(input_bbox, axs[1])
-    axs[1].set_title('Mask with Untuned Model', fontsize=26)
-    axs[1].axis('off')
+  axs[1].imshow(image)
+  show_mask(masks_orig, axs[1])
+  show_box(input_bbox, axs[1])
+  axs[1].set_title('Mask with Untuned Model', fontsize=26)
+  axs[1].axis('off')
 
-    plt.show()
+  plt.show()
