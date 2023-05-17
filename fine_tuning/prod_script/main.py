@@ -9,7 +9,7 @@ from torch.nn.functional import threshold, normalize
 from segment_anything.utils.transforms import ResizeLongestSide
 from segment_anything import SamPredictor, sam_model_registry
 from variables import DataPath, GroundTruth
-from fine_tuning.config import model_type, checkpoint, device, lr, wd, num_epochs
+from fine_tuning.prod_script.config import model_type, checkpoint, device, lr, wd, num_epochs
 import sys
 
 
