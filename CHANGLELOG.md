@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - created changelog File
 
-### changed
+### changed.
 - Moved all SAM original repo materials to ```official_sam_repo```
 
 
