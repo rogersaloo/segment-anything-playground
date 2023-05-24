@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from helpers import Helper
+from .helpers import Helper
 from statistics import mean
 from collections import defaultdict
 

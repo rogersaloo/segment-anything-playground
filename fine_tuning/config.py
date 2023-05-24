@@ -1,6 +1,6 @@
 ## fine_tuning
 model_type = 'vit_b'
-checkpoint = 'sam_vit_b_01ec64.pth'
+checkpoint = 'model_checkpoint/sam_vit_b_01ec64.pth'
 device = 'cuda:0'
 
 # Hyperparameters

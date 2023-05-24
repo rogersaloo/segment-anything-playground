@@ -1,13 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 import torch
 from statistics import mean
 from torch.nn.functional import threshold, normalize
-from fine_tuning.benchmark_repo.segment_anything import SamPredictor, sam_model_registry
+from segment_anything import SamPredictor, sam_model_registry
 from variables import DataPath, GroundTruth
-from fine_tuning.config import model_type, checkpoint, device, lr, wd, num_epochs
-import preprocess_image
+import config
+from preprocess_image import Mask
 from utils.plots import Plots
 
 # set path variables to the masks, train and test data
@@ -16,37 +15,38 @@ train_bottles = DataPath.train_bottles
 test_bottles = DataPath.test_bottles
 ground_truth_image = GroundTruth.ground_truth_image
 
-
+preprocess_image = Mask(ground_truth_masks,train_bottles)
 def compare_bbox_images_to_ground_truth_segmentation():
-    bbox_coordinates = preprocess_image.bbox_coords(ground_truth_masks)
-    g_truth_masks = preprocess_image.ground_truth_masks(train_bottles, bbox_coordinates)
-    return Plots.plot_ground_truth(test_bottles, ground_truth_image, bbox_coordinates)
+    bbox_coordinates = preprocess_image.bbox_coords()
+    print(bbox_coordinates)
+    # g_truth_masks = preprocess_image.ground_truth_masks(train_bottles, bbox_coordinates)
+    # return Plots.plot_ground_truth(test_bottles, ground_truth_image, bbox_coordinates)
 
 
 #FINETUNING
 # loading checkpoint of the SAM weights
-sam_model = sam_model_registry[model_type](checkpoint=checkpoint)
-sam_model.to(device)
+sam_model = sam_model_registry[config.model_type](checkpoint=config.checkpoint)
+sam_model.to(config.device)
 sam_model.train()
 
 # Preprocess image
-transformed_data = preprocess_image.preprocess_image(train_bottles, sam_model)
+transformed_data = preprocess_image.preprocess_image(sam_model)
 
 # Setting Hyperparameters
-optimizer = torch.optim.Adam(sam_model.mask_decoder.parameters(), lr=lr, weight_decay=wd)
+optimizer = torch.optim.Adam(sam_model.mask_decoder.parameters(), lr=config.lr, weight_decay=config.wd)
 loss_fn = torch.nn.MSELoss()
-bbox_coords = preprocess_image.bbox_coords(ground_truth_masks)
+bbox_coords = preprocess_image.bbox_coords()
 keys = list(bbox_coords.keys())
 
 # Training loop
-def train_sam():
+def train_sam(transform=None):
     losses = []
 
-    for epoch in range(num_epochs):
+    for epoch in range(config.num_epochs):
         epoch_losses = []
         # Train on the train images
         for k in keys:
-            input_image = transformed_data[k]['image'].to(device)
+            input_image = transformed_data[k]['image'].to(config.device)
             input_size = transformed_data[k]['input_size']
             original_image_size = transformed_data[k]['original_image_size']
 
@@ -56,7 +56,7 @@ def train_sam():
 
                 prompt_box = bbox_coords[k]
                 box = transform.apply_boxes(prompt_box, original_image_size)
-                box_torch = torch.as_tensor(box, dtype=torch.float, device=device)
+                box_torch = torch.as_tensor(box, dtype=torch.float, device=config.device)
                 box_torch = box_torch[None, :]
 
                 sparse_embeddings, dense_embeddings = sam_model.prompt_encoder(
@@ -72,13 +72,13 @@ def train_sam():
                 multimask_output=False,
             )
 
-            upscaled_masks = sam_model.postprocess_masks(low_res_masks, input_size, original_image_size).to(device)
+            upscaled_masks = sam_model.postprocess_masks(low_res_masks, input_size, original_image_size).to(config.device)
             binary_mask = normalize(threshold(upscaled_masks, 0.0, 0)
                                     )
             if isinstance(ground_truth_masks[k], bool):
                 binary_mask_shape = upscaled_masks.shape[-2:]
-                gt_binary_mask = torch.ones(binary_mask_shape, dtype=torch.float32).to(device) if ground_truth_masks[
-                    k] else torch.zeros(binary_mask_shape, dtype=torch.float32).to(device)
+                gt_binary_mask = torch.ones(binary_mask_shape, dtype=torch.float32).to(config.device) if ground_truth_masks[
+                    k] else torch.zeros(binary_mask_shape, dtype=torch.float32).to(config.device)
             else:
                 print(f"ERROR: ground_truth_masks[k] is not a boolean for key {k}")
                 continue
@@ -96,8 +96,8 @@ def train_sam():
 
 def original_sam_model():
     # Load up the model with default weights
-    sam_model_orig = sam_model_registry[model_type](checkpoint=checkpoint)
-    sam_model_orig.to(device)
+    sam_model_orig = sam_model_registry[config.model_type](checkpoint=config.checkpoint)
+    sam_model_orig.to(config.device)
     return SamPredictor(sam_model_orig)
 
 
@@ -133,6 +133,9 @@ def predict_on_tuned_sam(k=5):
         multimask_output=False,)
 
 
+def main():
+    compare_bbox_images_to_ground_truth_segmentation()
 
-
+if __name__ == '__main__':
+    main()
 

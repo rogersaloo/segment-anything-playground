@@ -43,3 +43,5 @@ package-lock.
 venv
 .DS_Store
 assets/SAM_presntation_deck.pdf
+model_checkpoint
+dataset
