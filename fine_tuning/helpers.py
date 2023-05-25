@@ -34,7 +34,6 @@ def show_box(box ,
 
 
 
-# Helper functions provided in https://github.com/facebookresearch/segment-anything/blob/9e8f1309c94f1128a6e5c047a10fdcb02fc8d651/notebooks/predictor_example.ipynb
 
 if __name__ == '__main__':
     pass

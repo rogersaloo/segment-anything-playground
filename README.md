@@ -61,6 +61,10 @@ The masking results from the new model are not perfect, but showcase an improvem
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
+### See documentation
+* `mkdocs build` - Build the documentation site.
+* `mkdocs serve` - Start the live-reloading docs server.
+
 ### Resources 
 1. Original SAM paper
 2. segment-anything github repo
