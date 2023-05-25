@@ -2,8 +2,13 @@
 All notable changes to the original SAM repo will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [0.5.0] - 2023-05-26
+### Added
+- Add docker file to containerize model
+- add fast api endpoint for model
 
-## [0.4.0] - 2023-05-23
+
+## [0.4.0] - 2023-05-25
 ### Added
 - Refactor python script to train on local GPU
 - Set model script for prod ready
