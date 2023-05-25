@@ -8,7 +8,12 @@ def plot_ground_truth(
         test_bottles: str,
         ground_truth_image: str,
         bbox_coords: dict):
-    """Returns bounding box images
+    """plot ground truth image only
+
+    Args:
+        test_bottles (str): cracked bottle sample used for testing model
+        ground_truth_image (str): ground truth image 
+        bbox_coords (dict): bounding box coordinate from the images
     """
     image = cv2.imread(f'{test_bottles}/{ground_truth_image}.png')
     plt.figure(figsize=(10,10))
@@ -20,7 +25,13 @@ def plot_ground_truth(
 
 def plot_sam_vs_tuned(image, input_bbox, masks_tuned, masks_orig):
     """Returns image of tuned model vs original SAM model
-  """
+
+    Args:
+        image (_type_): image to be masked
+        input_bbox (_type_): bounding box of broken images
+        masks_tuned (_type_): tuned sam model
+        masks_orig (_type_): tuned original model
+    """
     _, axs = plt.subplots(1, 2, figsize=(25, 25))
 
     axs[0].imshow(image)
@@ -38,6 +49,11 @@ def plot_sam_vs_tuned(image, input_bbox, masks_tuned, masks_orig):
     plt.show()
 
 def plot_train_mean(losses):
+    """Plot the train losses
+
+    Args:
+        losses (_type_): integer mean loss after training per epoch
+    """
     mean_losses = [mean(x) for x in losses]
     mean_losses
 
@@ -49,6 +65,14 @@ def plot_train_mean(losses):
     plt.show()
 
 def compare_models_masks(image, input_bbox, masks_tuned, masks_orig):
+    """Return two plot comparison of tuned model vs the original model
+
+    Args:
+        image (_type_): image to mask
+        input_bbox (_type_): bounding box of the broken bottle to prompt sam
+        masks_tuned (_type_): tuned SAM model
+        masks_orig (_type_): original SAM model
+    """
     _, axs = plt.subplots(1, 2, figsize=(25, 25))
     axs[0].imshow(image)
     show_mask(masks_tuned, axs[0])

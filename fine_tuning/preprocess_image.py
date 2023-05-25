@@ -69,18 +69,5 @@ class Mask:
         return transformed_data
 
 
-# from variables import DataPath, GroundTruth
-#
-# gtruth_masks = DataPath.ground_truth_masks
-# train_bottles = DataPath.train_bottles
-#
-#
-# def main():
-#     preprocess_image = Mask(gtruth_masks, train_bottles)
-#     # bbox_coordinates = preprocess_image.bbox_coords()
-#     g_truth_masks = preprocess_image.get_ground_truth_segmentation_masks()
-#     print(g_truth_masks)
-
-
 if __name__ == '__main__':
     pass

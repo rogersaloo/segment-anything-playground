@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def show_mask(mask, ax, random_color=False):
-    """_summary_
+    """Helper function to show masks
 
     Args:
         mask (_type_): _description_

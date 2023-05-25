@@ -22,11 +22,21 @@ preprocess_image = Mask(ground_truth_masks, train_bottles)
 
 
 def compare_bbox_images_to_ground_truth_segmentation():
+    """Get the bounding boxes and plot against masks ground truth
+
+    Returns:
+        image: passed image with bounding box and mask
+    """
     bounding_box_coordinates = preprocess_image.get_bounding_box_coordinates()
     return plots.plot_ground_truth(test_bottles, s_ground_truth_image, bounding_box_coordinates)
 
 
 def get_ground_truth_masks():
+    """Obtain the masks of the ground truth bottles
+
+    Returns:
+        dict: dict of boolean ground truth masks
+    """
     g_truth_masks = preprocess_image.get_ground_truth_segmentation_masks()
     return g_truth_masks
 
@@ -50,6 +60,11 @@ keys = list(bbox_coords.keys())
 
 # Training loop
 def train_sam():
+    """Train sam model on fine-tuned parameter
+
+    Returns:
+        dict: Returns a dict of mean losses
+    """
     losses = []
 
     for epoch in range(config.num_epochs):
@@ -108,24 +123,43 @@ def train_sam():
 
 
 def original_sam_model():
-    # Load up the model with default weights
+    """Download original SAM model and instantiate
+
+    """
     sam_model_orig = sam_model_registry[config.model_type](checkpoint=config.checkpoint)
     sam_model_orig.to(config.device)
     return SamPredictor(sam_model_orig)
 
 
 def tuned_sam_model():
+    """Download tuned SAM model and instantiate
+
+    """
     # Set up predictors for both tuned and original models
     return SamPredictor(sam_model)
 
 
 def load_image_to_predict(image_id):
+    """
+    Args:
+        image_id (str): id of the image in the dir to load
+
+    Returns:
+        image: loaded image for prediction
+    """
     image = cv2.imread(f'{test_bottles}/{image_id}.png')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
 
 def predict_on_tuned_sam(k):
+    """
+    Args:
+        k (str): image id in the dir to load
+
+    Returns:
+        model: tuned SAM model
+    """
     # The model has not seen train images therefore you test the masking of the bottles
     image = load_image_to_predict(k)
     input_bbox = np.array(bbox_coords[k])
@@ -139,6 +173,13 @@ def predict_on_tuned_sam(k):
 
 
 def predict_on_original_sam(k=s_ground_truth_image):
+    """
+    Args:
+        k (str): image id in the dir to load
+
+    Returns:
+        model: original SAM model
+    """
     image = load_image_to_predict(k)
     input_bbox = np.array(bbox_coords[k])
     predictor_original = original_sam_model()
@@ -152,6 +193,8 @@ def predict_on_original_sam(k=s_ground_truth_image):
 
 
 def main():
+    """Run the training model
+    """
     compare_bbox_images_to_ground_truth_segmentation()  # compare bbox vs mask compatibility
     losses = train_sam()  # Train tuned model & get loss
     plot_training_loss = plots.plot_train_mean(losses)  # plot loss graph
