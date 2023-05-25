@@ -10,14 +10,15 @@ from config import model_type, checkpoint, device, lr, wd, num_epochs
 class Mask:
     def __init__(self,
                  truth_masks: str,
-                 train_bottles: str ):
+                 train_bottles: str):
         super().__init__()
 
-        self.truth_masks=truth_masks
+        self.truth_masks = truth_masks
         self.train_bottles = train_bottles
         self.bbox_coordinates = {}
         self.ground_truth_masks = {}
-    def bbox_coords(self) -> dict:
+
+    def get_bounding_box_coordinates(self) -> dict:
         """
       Returns:
           dict: coordinates of bounding boxes of the passed image
@@ -33,23 +34,23 @@ class Mask:
             self.bbox_coordinates[image_name] = np.array([x, y, x + w, y + h])
         return self.bbox_coordinates
 
-
-    def ground_truth_masks(self) -> dict:
-        """Take a look at the images, the bounding box prompts and the ground truth segmentation masks
+    def get_ground_truth_segmentation_masks(self) -> dict:
+        """Extract the ground truth segmentation masks
 
       Returns:
-          dict: dict extract ofthe ground truth segmentation masks
+          dict: dict extract of the ground truth segmentation masks
       """
-        for k in self.bbox_coordinates.keys():
+        bounding_box_coordinates = self.get_bounding_box_coordinates()
+        for k in bounding_box_coordinates.keys():
             gt_grayscale = cv2.imread(f'{self.train_bottles}/{k}-mask.png', cv2.IMREAD_GRAYSCALE)
             self.ground_truth_masks[k] = (gt_grayscale == 0)
         return self.ground_truth_masks
-
 
     def preprocess_image(self, model) -> dict:
         """Returns pre-processed images
         Image resizing by convert the input images into a format SAM's internal functions expect"""
         transformed_data = defaultdict(dict)
+        bounding_box_coordinates = self.get_bounding_box_coordinates()
         for k in self.bbox_coordinates.keys():
             image = cv2.imread(f'{self.train_bottles}/{k}.png')
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -66,6 +67,19 @@ class Mask:
             transformed_data[k]['input_size'] = input_size
             transformed_data[k]['original_image_size'] = original_image_size
         return transformed_data
+
+
+# from variables import DataPath, GroundTruth
+#
+# gtruth_masks = DataPath.ground_truth_masks
+# train_bottles = DataPath.train_bottles
+#
+#
+# def main():
+#     preprocess_image = Mask(gtruth_masks, train_bottles)
+#     # bbox_coordinates = preprocess_image.bbox_coords()
+#     g_truth_masks = preprocess_image.get_ground_truth_segmentation_masks()
+#     print(g_truth_masks)
 
 
 if __name__ == '__main__':

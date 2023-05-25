@@ -8,4 +8,4 @@ class DataPath:
 
 @dataclass
 class GroundTruth:
-    ground_truth_image = '005'
+    single_ground_truth_image = '005'

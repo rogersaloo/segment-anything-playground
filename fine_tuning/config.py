@@ -6,4 +6,4 @@ device = 'cuda:0'
 # Hyperparameters
 lr = 1e-6
 wd = 0
-num_epochs = 70
+num_epochs = 10

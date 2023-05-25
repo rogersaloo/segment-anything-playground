@@ -2,6 +2,12 @@
 All notable changes to the original SAM repo will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+
+## [0.4.0] - 2023-05-23
+### Added
+- Refactor python script to train on local GPU
+- Set model script for prod ready
+
 ## [0.3.0] - 2023-05-13
 ### Added
 - added py script SAM fine-tuning for future app api build
