@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>日本語 - Fine-Tuning SAM Model</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\u65e5\u672c\u8a9e";
+        var mkdocs_page_input_path = "japanese.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Fine-Tuning SAM Model
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Overview</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../helpers/">Helpers</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../config/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../plots/">Plots</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../preprocess_image/">Preprocess Images</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../main/">Train</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">日本語</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#sam">ファインチューニング SAM ドキュメント</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#_2">説明</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_3">ファインチューニング</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_4">必要条件</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_5">はじめに</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#_6">ヘルパー</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#_7">説明</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#_8">マスクを表示する</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_9">ボックスの表示</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_10">プロット</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#_11">説明</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_">プリプロセッシング_画像</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#_12">モジュール</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_13">トレイン</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#_14">説明</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#_15">モジュール</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_16">コマンド</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_17">プロジェクトレイアウト</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Fine-Tuning SAM Model</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li>日本語</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="_1">日本語のドキュメントを細かく調整する</h1>
+<h2 id="sam">ファインチューニング SAM ドキュメント</h2>
+<p>このドキュメントには、コードのファインチューニングプロセスと本番用スクリプトの準備の説明が含まれています。rogers aloo <a href="https://github.com/rogersaloo">github</a> が作成しました。SAMモデルのファインチューニングのフルレポは <a href="https://github.com/rogersaloo/segment-anything-playground">こちら</a> を参照してください。</p>
+<h3 id="_2">説明</h3>
+<p>この <a href="https://github.com/rogersaloo/segment-anything-playground">リポジトリ</a> のルートにある <code>official_sam_repo</code> は、プロンプトによるセグメンテーションタスクのための基礎モデルを提供します。
+このモデルのリリースは、明示的なファインチューニング機能を持たないまま行われました。このフォルダには、このモデルの微調整が含まれています。</p>
+<p>このフォルダでは、マスクデコーダーに焦点を当て、微調整を行います。
+微調整を行います。</p>
+<p>segment_anything/predictor.pyの予測器SamPredctorは、基礎となるアーキテクチャの3つの部分（画像エンコード）をすべて含んでいるので、使用しないでください。
+予測器には、基礎となるアーキテクチャの3つの部分（画像エンコーダ、プロンプトエンコーダ、マスクデコーダ）がすべて含まれているからです。さらに、SamPredictorクラスの "predict_torch" 
+は勾配の再計算を防ぐデコレーター(@torch.no_grad)を持っています。</p>
+<h3 id="_3">ファインチューニング</h3>
+<p>通常のコンピュータビジョンの場合、学習データセットとは異なる新しい画像をモデルに見せようとすると、出力性能が低下します。
+出力性能は低下します。ファインチューニングを行うことで、元のモデルに匹敵する性能を維持することができます。</p>
+<p>ファインチューニングは、事前に訓練したモデルとその重みを取り込み、新しいデータセットや特定のタスクに適用することができます。
+特定のユースケースのニーズに関連するタスクに適用することができます。</p>
+<h3 id="_4">必要条件</h3>
+<p>モデルを微調整するためには、セグメンテーションする画像、画像に対する真実の根拠、画像に対するプロンプトが必要です。この例</p>
+<h2 id="_5">はじめに</h2>
+<h3 id="_6">ヘルパー</h3>
+<h4 id="_7">説明</h4>
+<p><a href="https://github.com/facebookresearch/segment-anything/blob/9e8f1309c94f1128a6e5c047a10fdcb02fc8d651/notebooks/predictor_example.ipynb">facebookresearch</a>が提供するヘルパー関数が含まれる。</p>
+<h4 id="_8">マスクを表示する</h4>
+<p><code>show_mask</code> 画像中のマスクを表示します。</p>
+<h3 id="_9">ボックスの表示</h3>
+<p>``show_box``` 画像中のオブジェクトに関連するバウンディングボックスを表示します。</p>
+<h2 id="_10">プロット</h2>
+<h3 id="_11">説明</h3>
+<p>このパートでは、グランドトゥルースとモデル後のマスク画像のプロットに焦点を当てます。</p>
+<ol>
+<li><code>plot_ground_truth</code>： グランドトゥルースマスクをプロットする</li>
+<li><code>plot_sam_vs_tuned</code>: サンプルのマスクとファインチューニングを比較した画像をプロットする(手と手を合わせて)</li>
+<li><code>plot_train_mean</code>: トレーニングロスの平均グラフをプロットする。</li>
+<li><code>compare_models_masks</code> sam マスクとファインチューニングの画像マスクの比較プロットを比較する。</li>
+</ol>
+<h2 id="_">プリプロセッシング_画像</h2>
+<p>SAMモデルにロードする前に、画像を前処理する。モジュールは、SAMモデルの入力に合うように画像サイズをリサイズする。</p>
+<h3 id="_12">モジュール</h3>
+<ol>
+<li>get_bounding_box_coordinates``：渡された画像のバウンディングボックスの座標。</li>
+<li>
+<ol>
+<li><code>preprocess_image</code>： グランドトゥルースセグメンテーションマスクを抽出する</li>
+</ol>
+</li>
+<li><code>preprocess_image</code>: グラウンドトゥルースのセグメンテーションマスクを抽出します： 前処理済みの画像を返す 入力画像をフォーマット変換して画像サイズを変更する SAMの内部関数に期待すること</li>
+</ol>
+<h2 id="_13">トレイン</h2>
+<h3 id="_14">説明</h3>
+<p>SAMモデルの実行と微調整に使用されるメインスクリプトが含まれています。</p>
+<h3 id="_15">モジュール</h3>
+<ol>
+<li><code>compare_bbox_images_to_ground_truth_segmentation：</code> バウンディングボックスを取得し、マスクのグランドトゥルースに対してプロットする。</li>
+<li><code>get_ground_truth_masks</code>： グランドトゥルースボトルのマスクを取得します。</li>
+<li><code>train_sam</code>： 微調整されたパラメータでsamモデルを訓練する</li>
+<li><code>original_sam_model</code>： オリジナルのSAMモデルをダウンロードし、インスタンス化する</li>
+<li><code>tuned_sam_model：</code> チューニングされたSAMモデルをダウンロードし、インスタンス化する</li>
+<li><code>load_image_to_predict</code>: 予測用の画像をロードする。</li>
+<li><code>predict_on_tuned_sam</code>: チューニングされたSAMモデル。</li>
+<li><code>predict_on_original_sam</code>: ロードする画像ID。</li>
+<li><code>main()</code>： トレーニングモデルを実行する</li>
+</ol>
+<h2 id="_16">コマンド</h2>
+<p>ライブサーバを起動し、ロードするために実行します；
+* <code>mkdocs build</code> - ドキュメントサイトを構築する。
+* <code>mkdocs serve</code> - ライブでロードする docs サーバーを起動する。
+* <code>mkdocs -h</code> - ヘルプメッセージを表示し、終了する。</p>
+<h2 id="_17">プロジェクトレイアウト</h2>
+<pre><code>mkdocs.yml # 設定ファイルです。
+docs/
+    &lt;!-- index.md # ドキュメントのトップページです。--&gt;
+    helpers.md # マスクをプロットするためのヘルパー関数
+    plots.md # プロット 
+    preprocess_image.md # samで使用するための画像の前処理
+    main.md # 訓練とsamのメインモデル
+    config.md # ハイパーパラメータや変数の細かい調整
+    app.md # dockerizeしてfast api endpointを作る。
+    japanese.md # ドキュメントの日本語訳
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../main/" class="btn btn-neutral float-left" title="Train"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../main/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

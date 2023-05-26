@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>Fine-Tuning SAM Model</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Overview";
+        var mkdocs_page_input_path = "index.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> Fine-Tuning SAM Model
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Overview</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fine-tuning">Fine-tuning</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#commands">Commands</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#project-layout">Project layout</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="helpers/">Helpers</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="config/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="plots/">Plots</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="preprocess_image/">Preprocess Images</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="main/">Train</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="japanese/">日本語</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">Fine-Tuning SAM Model</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a> &raquo;</li>
+      <li>Overview</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fine-tuning-sam-documentation">Fine-Tuning SAM Documentation</h1>
+<p>The documentation contains an explanation of the codes fine tuning process and preperation of scripts for production. Prepared by rogers aloo <a href="https://github.com/rogersaloo">github</a> check the full repo to finetuning the SAM model <a href="https://github.com/rogersaloo/segment-anything-playground">here</a>.</p>
+<h2 id="description">Description</h2>
+<p>SAM model on the root of this <a href="https://github.com/rogersaloo/segment-anything-playground">repository</a> <code>official_sam_repo</code> provides a foundational model for segmentation tasks through prompting.
+The model release occurred without an explicit fine-tuning functionality. This folder contains a finetune of the model.</p>
+<p>The fine-tuning here focuses on the mask decorder only because it is lighter and therefore faster an more effecient to 
+fine tune.</p>
+<p>You do not use the predictor SamPredctor in <code>segment_anything/predictor.py</code> since the predictor contains all the three
+parts of the underlying architecture (image encoder, prompt encoder and mask decoder). Additionally, the "predict_torch" 
+in the SamPredictor class has a decorator(@torch.no_grad) preventing the re-computation of gradients.</p>
+<h2 id="fine-tuning">Fine-tuning</h2>
+<p>In normal case of computer vision if we try to show a model new images that are not the same as the training dataset, the 
+output performance will be degraded. Fine-tuning helps to maintain good performace comparable to the original model.</p>
+<p>Fine-tuning allows uptake of the pre-trained model and its weights and subjecting it to a new dataset or a task specific 
+task relating to the needs of a specific use case.</p>
+<h2 id="requirements">Requirements</h2>
+<p>To finetune the model you need the images to segment, ground truths to the image and prompts for the image. This example</p>
+<h2 id="commands">Commands</h2>
+<p>To start and load the live server run;
+* <code>mkdocs build</code> - Build the documentation site.
+* <code>mkdocs serve</code> - Start the live-reloading docs server.
+* <code>mkdocs -h</code> - Print help message and exit.</p>
+<h2 id="project-layout">Project layout</h2>
+<pre><code>mkdocs.yml    # The configuration file.
+docs/
+    &lt;!-- index.md  # The documentation homepage. --&gt;
+    helpers.md  # helper function for plotting masks
+    plots.md  # plots 
+    preprocess_image.md # preprocessing images for use in sam
+    main.md # main train and sam model
+    config.md # fine tuning hyperparameters and variables
+    app.md # dockerize and make fast api endpoint
+    japanese.md # Japanese translation of the documentation
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="helpers/" class="btn btn-neutral float-right" title="Helpers">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+      <span><a href="helpers/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme_extra.js" defer></script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.4.3
+Build Date UTC : 2023-05-26 04:37:39.212154+00:00
+-->
